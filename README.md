@@ -2,6 +2,12 @@
 
 > A small, local checkup for software projects.
 
+[![Tests](https://github.com/Alex377sx/ai-project-doctor/actions/workflows/test.yml/badge.svg)](https://github.com/Alex377sx/ai-project-doctor/actions/workflows/test.yml)
+[![Python 3.9+](https://img.shields.io/badge/Python-3.9%2B-3776AB)](https://www.python.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+
+![AI Project Doctor preview](assets/social-preview.jpg)
+
 Most repositories do not fail because of one dramatic bug. They become difficult to maintain through a collection of small problems: missing documentation, no tests, an untracked lockfile, oversized files, or a credential accidentally left in source code.
 
 AI Project Doctor gives you a quick health report before those problems become somebody else's surprise. Point it at a project and it checks the things that are easy to forget when you are focused on building features.
@@ -84,6 +90,8 @@ Planned improvements are ordered around useful reports rather than a large frame
 - A GitHub Action for checking every pull request
 
 Suggestions and small pull requests are welcome. If a check is noisy or gives a recommendation without enough context, that is a bug worth reporting.
+
+If the tool saves you time, a star helps other developers find it.
 
 ## License
 
