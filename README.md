@@ -8,6 +8,8 @@ AI Project Doctor gives you a quick health report before those problems become s
 
 The first version is deliberately simple. It runs locally, reads the files it needs, and does not upload your source code or require an API key.
 
+This is my first public open-source project. I am keeping the first release small so the checks are easy to understand, easy to test, and useful to other developers.
+
 ## What it checks
 
 The current checks cover:
@@ -76,3 +78,7 @@ Suggestions and small pull requests are welcome. If a check is noisy or gives a 
 ## License
 
 MIT
+
+## Project
+
+[View AI Project Doctor on GitHub](https://github.com/Alex377sx/ai-project-doctor)
