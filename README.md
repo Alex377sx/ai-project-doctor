@@ -10,6 +10,8 @@ The first version is deliberately simple. It runs locally, reads the files it ne
 
 This is my first public open-source project. I am keeping the first release small so the checks are easy to understand, easy to test, and useful to other developers.
 
+The current checks are deterministic and do not call an AI service. The AI part is a future direction, not a claim about the first release.
+
 ## What it checks
 
 The current checks cover:
@@ -37,6 +39,14 @@ To save a machine-readable report:
 ```bash
 python -m project_doctor . --json report.json
 ```
+
+You can also analyze a public GitHub repository directly:
+
+```bash
+python -m project_doctor https://github.com/owner/repository
+```
+
+The tool downloads a shallow copy into a temporary directory, runs the same checks, prints the report, and removes the temporary copy. Only public HTTPS GitHub repository URLs are supported for now.
 
 Example output:
 
