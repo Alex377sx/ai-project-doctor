@@ -2,7 +2,10 @@ import argparse
 import json
 import re
 import subprocess
+import tempfile
 from pathlib import Path
+from typing import Optional
+from urllib.parse import urlparse
 
 SECRET_PATTERNS = [
     re.compile(r"(?i)(api[_-]?key|secret|token|password)\s*[:=]\s*['\"][^'\"]{8,}"),
@@ -17,7 +20,7 @@ def files_in(root: Path):
             yield path
 
 
-def check_project(root: Path) -> dict:
+def check_project(root: Path, display_root: Optional[str] = None) -> dict:
     files = list(files_in(root))
     names = {path.name.lower() for path in files}
     findings = []
@@ -62,7 +65,50 @@ def check_project(root: Path) -> dict:
 
     weights = {"critical": 25, "high": 15, "medium": 8, "low": 3}
     score = max(0, 100 - sum(weights[item["severity"]] for item in findings))
-    return {"version": "0.1.0", "root": str(root), "score": score, "findings": findings}
+    return {"version": "0.1.0", "root": display_root or str(root), "score": score, "findings": findings}
+
+\n\ndef validate_repository_url(target: str) -> str:
+    parsed = urlparse(target)
+    if parsed.scheme.lower() != "https" or parsed.netloc.lower() != "github.com":
+        raise ValueError("Only HTTPS GitHub repository URLs are supported.")
+
+    parts = [part for part in parsed.path.split("/") if part]
+    if len(parts) != 2:
+        raise ValueError("Use a repository URL such as https://github.com/owner/repository.")
+
+    owner, repository = parts
+    if repository.endswith(".git"):
+        repository = repository[:-4]
+    if not owner or not repository or parsed.query or parsed.fragment:
+        raise ValueError("Use the repository URL without query parameters or a file path.")
+
+    return f"https://github.com/{owner}/{repository}.git"
+
+
+def inspect_target(target: str) -> dict:
+    if not target.lower().startswith("https://"):
+        return check_project(Path(target).resolve())
+
+    repository_url = validate_repository_url(target)
+    with tempfile.TemporaryDirectory(prefix="project-doctor-") as temporary_directory:
+        checkout_path = Path(temporary_directory) / "repository"
+        try:
+            subprocess.run(
+                ["git", "clone", "--depth", "1", "--quiet", "--", repository_url, str(checkout_path)],
+                check=True,
+                capture_output=True,
+                text=True,
+                timeout=120,
+            )
+        except FileNotFoundError as error:
+            raise RuntimeError("Git is required to analyze a GitHub URL.") from error
+        except subprocess.TimeoutExpired as error:
+            raise RuntimeError("The repository clone timed out after 120 seconds.") from error
+        except subprocess.CalledProcessError as error:
+            detail = error.stderr.strip() or "Git could not clone the repository."
+            raise RuntimeError(detail) from error
+
+        return check_project(checkout_path, display_root=target)
 
 
 def main():
@@ -70,7 +116,10 @@ def main():
     parser.add_argument("path", nargs="?", default=".")
     parser.add_argument("--json", dest="json_path")
     args = parser.parse_args()
-    report = check_project(Path(args.path).resolve())
+    try:
+        report = inspect_target(args.path)
+    except (RuntimeError, ValueError) as error:
+        parser.error(str(error))
     if args.json_path:
         Path(args.json_path).write_text(json.dumps(report, indent=2), encoding="utf-8")
     print(f"AI Project Doctor | score: {report['score']}/100")
