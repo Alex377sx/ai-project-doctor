@@ -67,7 +67,9 @@ def check_project(root: Path, display_root: Optional[str] = None) -> dict:
     score = max(0, 100 - sum(weights[item["severity"]] for item in findings))
     return {"version": "0.1.0", "root": display_root or str(root), "score": score, "findings": findings}
 
-\n\ndef validate_repository_url(target: str) -> str:
+
+
+def validate_repository_url(target: str) -> str:
     parsed = urlparse(target)
     if parsed.scheme.lower() != "https" or parsed.netloc.lower() != "github.com":
         raise ValueError("Only HTTPS GitHub repository URLs are supported.")
